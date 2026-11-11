@@ -1,21 +1,21 @@
-# Base image with Node.js 22 LTS
-FROM node:22-bullseye-slim
+# Base image with Node.js 22 LTS on modern Debian Bookworm (Stable)
+FROM node:22-bookworm-slim
 
-# Install system dependencies (curl for healthchecks, ffmpeg for video encoding, ca-certificates for TLS)
+# Install system dependencies (curl for healthchecks, procps for process management, ca-certificates for TLS)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     ca-certificates \
-    ffmpeg \
     procps \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Copy package manifests first for caching
+# Copy package manifests and .npmrc first for caching
 COPY package*.json ./
+COPY .npmrc* ./
 
-# Install all dependencies (including devDependencies needed by Vite compiler)
-RUN npm install
+# Install all dependencies (npm install will bring pre-compiled ffmpeg-static automatically)
+RUN npm install --legacy-peer-deps
 
 # Copy source code
 COPY . .
